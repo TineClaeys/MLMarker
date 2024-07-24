@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: MLMarker_app
+Version: 0.1
+License-File: LICENSE
+Requires-Dist: pandas
+Requires-Dist: mysql-connector-python
+Requires-Dist: imbalanced-learn
+Requires-Dist: scikit-learn
+Requires-Dist: matplotlib
+Requires-Dist: shap
+Requires-Dist: seaborn
+Requires-Dist: xgboost
+Requires-Dist: numpy
