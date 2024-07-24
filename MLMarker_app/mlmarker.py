@@ -3,12 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import shap
 import joblib
+
 class MLMarker:
-    def __init__(self, model_path, features_path, sample_df):
-        self.model_path, self.features_path, = model_path, features_path
+    def __init__(self, sample_df, binary=True):
+        if binary:
+            model_path = "/home/compomics/git/MLMarker/models/binary_TP_full_92%_10exp_2024.joblib"
+            features_path = "/home/compomics/git/MLMarker/models/binary_features_TP_full_92%_10exp_2024.txt"
+        else:
+            model_path = "/home/compomics/git/MLMarker/models/TP_full_92%_10exp_2024.joblib"
+            features_path = "/home/compomics/git/MLMarker/models/features_TP_full_92%_10exp_2024.txt"
+        self.model_path = model_path
+        self.features_path = features_path
         self.model, self.features = self.load_model_and_features(model_path, features_path)
         self.sample = self.read_sample(sample_df)
-        #just some text
+        self.binary = binary
         self.explainer = shap.TreeExplainer(self.model)  # Load SHAP explainer once
 
     def load_model_and_features(self, model_path, features_path):
@@ -40,7 +48,7 @@ class MLMarker:
         probabilities = self.model.predict_proba(self.sample).flatten()
         classes = self.model.classes_
         result = sorted(zip(classes, probabilities), key=lambda x: x[1], reverse=True)[:n_preds]
-        formatted_result = [(tissue, round(float(prob), 4)) for tissue, prob in result]
+        formatted_result = [(pred_tissue, round(float(prob), 4)) for pred_tissue, prob in result]
         return formatted_result
 
     def calculate_shap(self):
@@ -84,3 +92,28 @@ class MLMarker:
         plt.figure(figsize=(10, 6))
         plt.pie(tissue_predictions, labels=tissue_names, autopct=lambda p: '{:.1f}%'.format(p) if p > 3.4 else '')
         plt.show()
+
+    def shap_abundance_distribution(self, n_preds=5):
+        """For each classification, make a scatterplot of the SHAP values versus the abundance within the sample"""
+        shap_values = self.calculate_shap()
+        predictions = self.predict_top_tissues(n_preds)
+        classes = self.model.classes_
+
+        for tissue, _ in predictions:
+            tissue_loc = list(classes).index(tissue)
+            tissue_shap = shap_values[tissue_loc]
+            plt.figure(figsize=(10, 6))
+            plt.scatter(self.sample, tissue_shap, c=['black' if abundance == 0 else 'blue' for abundance in self.sample.values.flatten()])
+            plt.xlabel("Abundance")
+            plt.ylabel("SHAP value")
+            plt.title("Abundance vs SHAP for {}".format(tissue))
+            plt.show()
+    
+    def training_instances(self, n_preds=5):
+        """Return the number of training instances for the top predictions"""
+        training_instances = pd.read_csv('/home/compomics/git/MLMarker/data/training_instances.csv')
+        predictions = self.predict_top_tissues(n_preds)
+        pred_tissues = [tup[0] for tup in predictions]
+        training_instances = training_instances.set_index('tissue_name')
+        training_instances = training_instances.loc[pred_tissues]
+        return training_instances.reset_index()

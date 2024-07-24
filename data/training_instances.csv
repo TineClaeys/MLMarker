@@ -1,0 +1,36 @@
+tissue_name,count,percentage
+Testis,108,10.03
+Liver,95,8.82
+Brain,51,4.74
+Lung,49,4.55
+NK-cells,47,4.36
+Placenta,46,4.27
+Pancreas,42,3.9
+Colon,39,3.62
+Kidney,34,3.16
+Stomach,32,2.97
+Ovary,32,2.97
+Pituitary gland,32,2.97
+Small intestine,32,2.97
+Adrenal gland,27,2.51
+Heart,26,2.41
+B-cells,25,2.32
+Duodenum,24,2.23
+Salivary gland,24,2.23
+Urinary bladder,23,2.14
+Oviduct,23,2.14
+Endometrium,21,1.95
+Tonsil,21,1.95
+Thyroid,21,1.95
+Parotid gland,20,1.86
+Rectum,20,1.86
+Esophagus,20,1.86
+Lymph node,19,1.76
+Prostate,19,1.76
+Spleen,19,1.76
+Adipose tissue,18,1.67
+Nasal polyps,16,1.49
+Smooth muscle,15,1.39
+Appendix,13,1.21
+Skeletal muscle,12,1.11
+Monocytes,12,1.11
