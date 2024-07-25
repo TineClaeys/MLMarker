@@ -53,7 +53,11 @@ class MLMarker:
 
     def calculate_shap(self):
         shap_values = self.explainer.shap_values(self.sample, check_additivity=False)
-        shap_values = np.transpose(shap_values, (0, 2, 1))[0]
+        #transpose so that the shape is always (1,35,4384)
+        original_order = np.array(shap_values).shape
+        desired_order = (original_order.index(1), original_order.index(35), original_order.index(4384))
+        shap_values = np.transpose(shap_values, desired_order)
+        shap_values = shap_values[0]  # remove the first dimension
         return shap_values
 
     def visualize_shap_force_plot(self, n_preds=5):
@@ -69,9 +73,9 @@ class MLMarker:
 
     def interpret_shap_values(self, n_preds=5):
         """Get a dataframe with the SHAP values for each feature for the top n_preds tissues"""
-        shap_values = self.calculate_shap(self.sample)
+        shap_values = self.calculate_shap()
         classes = self.model.classes_
-        predictions = self.predict_top_tissues(self.sample, n_preds)
+        predictions = self.predict_top_tissues(n_preds)
         
         shap_values_df = pd.DataFrame(shap_values)
         shap_values_df.columns = self.features
@@ -102,8 +106,10 @@ class MLMarker:
         for tissue, _ in predictions:
             tissue_loc = list(classes).index(tissue)
             tissue_shap = shap_values[tissue_loc]
-            plt.figure(figsize=(10, 6))
-            plt.scatter(self.sample, tissue_shap, c=['black' if abundance == 0 else 'blue' for abundance in self.sample.values.flatten()])
+            sample_abundances = list(self.sample.values.flatten())
+            print(len(tissue_shap), len(sample_abundances))
+            plt.figure(figsize=(5,5))
+            plt.scatter(sample_abundances, tissue_shap, c=['black' if abundance == 0 else 'blue' for abundance in sample_abundances])
             plt.xlabel("Abundance")
             plt.ylabel("SHAP value")
             plt.title("Abundance vs SHAP for {}".format(tissue))
