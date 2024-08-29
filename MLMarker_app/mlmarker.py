@@ -71,18 +71,18 @@ class MLMarker:
             print(tissue)
             display(shap.force_plot(self.explainer.expected_value[1], shap_values[tissue_loc], self.sample, matplotlib=True))
 
-    def interpret_shap_values(self, n_preds=5):
+    def shap_values_df(self, n_preds=5):
         """Get a dataframe with the SHAP values for each feature for the top n_preds tissues"""
         shap_values = self.calculate_shap()
         classes = self.model.classes_
         predictions = self.predict_top_tissues(n_preds)
         
-        shap_values_df = pd.DataFrame(shap_values)
-        shap_values_df.columns = self.features
-        shap_values_df['tissue'] = classes
-        shap_values_df = shap_values_df.set_index('tissue')
-        shap_values_df = shap_values_df.loc[[item[0] for item in predictions]]
-        return shap_values_df
+        shap_df = pd.DataFrame(shap_values)
+        shap_df.columns = self.features
+        shap_df['tissue'] = classes
+        shap_df = shap_df.set_index('tissue')
+        shap_df = shap_df.loc[[item[0] for item in predictions]]
+        return shap_df
 
     def pie_chart_predictions(self):
         predictions = self.model.predict_proba(self.sample).flatten()
@@ -107,7 +107,6 @@ class MLMarker:
             tissue_loc = list(classes).index(tissue)
             tissue_shap = shap_values[tissue_loc]
             sample_abundances = list(self.sample.values.flatten())
-            print(len(tissue_shap), len(sample_abundances))
             plt.figure(figsize=(5,5))
             plt.scatter(sample_abundances, tissue_shap, c=['black' if abundance == 0 else 'blue' for abundance in sample_abundances])
             plt.xlabel("Abundance")
@@ -123,3 +122,4 @@ class MLMarker:
         training_instances = training_instances.set_index('tissue_name')
         training_instances = training_instances.loc[pred_tissues]
         return training_instances.reset_index()
+    
