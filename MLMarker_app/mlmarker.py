@@ -3,24 +3,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 import shap
 import joblib
+import xgboost as xgb
 
 class MLMarker:
-    def __init__(self, sample_df, binary=True):
+    def __init__(self, sample_df, binary=True, minimal_feature_set=False, dev=False):
         if binary:
-            model_path = "/home/compomics/git/MLMarker/models/binary_TP_full_92%_10exp_2024.joblib"
-            features_path = "/home/compomics/git/MLMarker/models/binary_features_TP_full_92%_10exp_2024.txt"
+            model_path = "/home/compomics/git/MLMarker/models/binary_TP_4000features_95to75missingness_2024.joblib"
+            features_path = "/home/compomics/git/MLMarker/models/binary_features_TP_4000features_95to75missingness_2024.txt"           
         else:
             model_path = "/home/compomics/git/MLMarker/models/TP_full_92%_10exp_2024.joblib"
             features_path = "/home/compomics/git/MLMarker/models/features_TP_full_92%_10exp_2024.txt"
+        if dev:
+            model_path = "/home/compomics/git/MLMarker/models/binary_TP_XGB_95to75missingness_2024.joblib"
+            features_path = "/home/compomics/git/MLMarker/models/binary_features_TP_XGB_95to75missingness_2024.txt"   
+            self.dev = dev       
         self.model_path = model_path
         self.features_path = features_path
         self.model, self.features = self.load_model_and_features(model_path, features_path)
         self.sample = self.read_sample(sample_df)
-        self.binary = binary
+        self.binary = binary        
         self.explainer = shap.TreeExplainer(self.model)  # Load SHAP explainer once
+        self.zero_shaps = self.zero_sample()
+
 
     def load_model_and_features(self, model_path, features_path):
         self.model = joblib.load(self.model_path)
+        if isinstance(self.model, xgb.XGBClassifier):    
+            # Load model using XGBoost’s native load_model method
+            self.model = xgb.XGBClassifier()
+            self.model.load_model("/home/compomics/git/MLMarker/models/binary_TP_XGB_95to75missingness_2024.json")
+            print('its an xgbclassifier')
         with open(features_path, 'r') as features_file:
             self.features = features_file.read().split(',\n')
         return self.model, self.features
@@ -29,20 +41,40 @@ class MLMarker:
         # sample should be one row only! otherwise give error
         if sample_df.shape[0] > 1:
             print("Error: Sample should be a single row for prediction, only first row is used")
+
         # match features between sample column names and self.features
-        matched_features = [feature for feature in self.features if feature in sample_df.columns]
-        added_features = [feature for feature in self.features if feature not in sample_df.columns]
-        removed_features = [feature for feature in sample_df.columns if feature not in self.features]
+        matched_features = list(set([feature for feature in self.features if feature in sample_df.columns]))
+        added_features = list(set([feature for feature in self.features if feature not in sample_df.columns]))
+        removed_features = list(set([feature for feature in sample_df.columns if feature not in self.features]))
+
         if len(added_features) > 0:
             print("Warning: {} model features are not in the sample and were added as zero values".format(len(added_features)))
         if len(removed_features) > 0:
             print("Warning: {} sample features are not in the model and were removed".format(len(removed_features)))
-        
+
         # the final sample contains matched and added features
         sample_df = sample_df[matched_features]
         added_features_df = pd.DataFrame(0, index=sample_df.index, columns=added_features)
         sample = pd.concat([sample_df, added_features_df], axis=1)
+
+        # remove columns in sample that are not in self.features
+        sample = sample[self.features]
+
+        if list(sample.columns) != self.features:
+            print("Error: Sample columns do not match model features")
+            print(f"Error: Features are {len(sample.columns)} and should be {len(self.features)}")
+            print(len(sample.columns), len(set(sample.columns)))
+
+        # Remove duplicate columns
+        sample = sample.loc[:, ~sample.columns.duplicated()]
+
         return sample
+    
+    def zero_sample(self):
+        zero_sample = pd.DataFrame(np.zeros((1, len(self.features))), columns=self.features)
+        zero_shaps = self.shap_values_df(sample=zero_sample, n_preds=100)
+        return zero_shaps
+
 
     def predict_top_tissues(self, n_preds=5):
         probabilities = self.model.predict_proba(self.sample).flatten()
@@ -51,29 +83,23 @@ class MLMarker:
         formatted_result = [(pred_tissue, round(float(prob), 4)) for pred_tissue, prob in result]
         return formatted_result
 
-    def calculate_shap(self):
+    def calculate_shap(self, sample=None):
+    
+        """Calculate SHAP values for a given sample, or use the class sample by default."""
+        if sample is None:
+            sample = self.sample
         shap_values = self.explainer.shap_values(self.sample, check_additivity=False)
         #transpose so that the shape is always (1,35,4384)
         original_order = np.array(shap_values).shape
-        desired_order = (original_order.index(1), original_order.index(35), original_order.index(4384))
+        desired_order = (original_order.index(1), original_order.index(24), original_order.index(6877))
         shap_values = np.transpose(shap_values, desired_order)
         shap_values = shap_values[0]  # remove the first dimension
         return shap_values
 
-    def visualize_shap_force_plot(self, n_preds=5):
-        shap_values = self.calculate_shap()
-        predictions = self.predict_top_tissues(n_preds)
-        shap.initjs()
-        # print the base_value
-        print("The base value is {}".format(self.explainer.expected_value[1]))
-        for tissue, _ in predictions:
-            tissue_loc = list(self.model.classes_).index(tissue)
-            print(tissue)
-            display(shap.force_plot(self.explainer.expected_value[1], shap_values[tissue_loc], self.sample, matplotlib=True))
-
-    def shap_values_df(self, n_preds=5):
+    
+    def shap_values_df(self, sample=None, n_preds=5):
         """Get a dataframe with the SHAP values for each feature for the top n_preds tissues"""
-        shap_values = self.calculate_shap()
+        shap_values = self.calculate_shap(sample)
         classes = self.model.classes_
         predictions = self.predict_top_tissues(n_preds)
         
@@ -83,6 +109,31 @@ class MLMarker:
         shap_df = shap_df.set_index('tissue')
         shap_df = shap_df.loc[[item[0] for item in predictions]]
         return shap_df
+    
+    def adjusted_shap_values_df(self, n_preds=5, penalty_factor=2):
+        shap_df = self.shap_values_df(n_preds=n_preds)
+        missing_proteins = self.sample.columns[self.sample.iloc[0] == 0]
+        present_shap = shap_df.drop(missing_proteins, axis=1)
+        absent_shap = shap_df[missing_proteins]
+        notcontributing = absent_shap.loc[:, absent_shap.sum() == 0] 
+        absent_shap_and_contributing = absent_shap.loc[:, absent_shap.sum() != 0]
+        zero_absent_shap = self.zero_shaps[absent_shap_and_contributing.columns.tolist()]
+        penalty = absent_shap_and_contributing - (penalty_factor *zero_absent_shap)
+        combined_df = pd.concat([present_shap, notcontributing, penalty], axis=1)
+        return combined_df
+
+
+    def visualize_shap_force_plot(self, n_preds=5):
+            shap_values = self.calculate_shap()
+            predictions = self.predict_top_tissues(n_preds)
+            shap.initjs()
+            # print the base_value
+            print("The base value is {}".format(self.explainer.expected_value[1]))
+            for tissue, _ in predictions:
+                tissue_loc = list(self.model.classes_).index(tissue)
+                print(tissue)
+                display(shap.force_plot(self.explainer.expected_value[1], shap_values[tissue_loc], self.sample, matplotlib=True))
+
 
     def pie_chart_predictions(self):
         predictions = self.model.predict_proba(self.sample).flatten()
@@ -123,3 +174,51 @@ class MLMarker:
         training_instances = training_instances.loc[pred_tissues]
         return training_instances.reset_index()
     
+    def confidence_score_df(self, n_preds=5):
+        """Get a dataframe with the confidence score         
+        Confidence Scoreclass = Probabilityclass × (∑(Positive Present Features)−∑(Negative Present Features)/Total Present Features)−(∑(Positive Absent Features)+∑(Negative Absent Features)/Total Features)
+        """
+        shap_values = self.calculate_shap()
+        classes = self.model.classes_
+        predictions = self.predict_top_tissues(n_preds)
+        shap_df = self.shap_values_df(n_preds)
+
+        # Get the SHAP values for the sample
+         # Assuming shap_values_df aligns with the sample index
+        shap_df = shap_df.T
+        # Initialize a list to store results for this sample
+        sample_results = []
+        # Loop through each predicted tissue class and its probability
+        for item in predictions:
+            tissue, prob = item
+            # For each tissue prediction, we calculate the contribution of SHAP values
+            print(tissue, prob)
+            # Separate SHAP values based on present/absent features
+            positive_present = shap_df[(shap_df[tissue] > 0) & (sample_data.T != 0)].sum().values[0]
+            negative_present = shap_df[(shap_df[tissue] < 0) & (sample_data.T != 0)].sum().values[0]
+            
+            positive_absent = shap_df[(shap_df[tissue] > 0) & (sample_data.T == 0)].sum().values[0]
+            negative_absent = shap_df[(shap_df[tissue] < 0) & (sample_data.T == 0)].sum().values[0]
+            
+            # Total present and total features
+            total_present = (sample_data.T != 0).sum().values[0]
+            total_features = sample_data.T.shape[1]  # Total number of features
+            
+            # Calculate the confidence score using the formula
+            confidence_score = prob * ((positive_present - negative_present) / total_present) - \
+                                ((positive_absent + negative_absent) / total_features)
+            
+            # Append the result for this tissue to the list
+            sample_results.append({
+                'sample': sub_df.index[i],  # Sample name
+                'tissue': tissue,
+                'probability': prob,
+                'confidence_score': confidence_score
+            })
+        
+        # Convert the results for the current sample into a DataFrame and append to the final results dataframe
+        sample_df = pd.DataFrame(sample_results)
+        results_df = pd.concat([results_df, sample_df], ignore_index=True)
+
+    # Show the final results
+        return results_df
