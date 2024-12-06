@@ -1,0 +1,11 @@
+Hey Tine,
+
+Francis had je denk ik al aangesproken of het mogelijk zou zijn om de tissue prediction te lopen voor 1 van onze datasets. We hebben 6 stalen, waarvan er telkens 3 stalen voor een type weefsel. We hebben dit allemaal samen gelopen met DIA-NN en hebben dus quantificatie matrices op precursor, protein group en gen-niveau. Ik heb ze hier in de bijlage gestoken (ze zijn toch niet heel groot). 
+
+De 6 stalen zijn als volgt:
+S:\Proteomics\CMB\CMB-1515\T063417_AurEl7_PM7_CMB-1515_9_GD6_1_10072.d	VSMC
+S:\Proteomics\CMB\CMB-1515\T063423_AurEl7_PM7_CMB-1515_6_GD3_1_10078.d	occlusie
+S:\Proteomics\CMB\CMB-1515\T063425_AurEl7_PM7_CMB-1515_5_GD2_1_10080.d	occlusie
+S:\Proteomics\CMB\CMB-1515\T063427_AurEl7_PM7_CMB-1515_4_GD1_1_10082.d	VSMC
+S:\Proteomics\CMB\CMB-1515\T063429_AurEl7_PM7_CMB-1515_3_GC8_1_10084.d	occlusie
+S:\Proteomics\CMB\CMB-1515\T063431_AurEl7_PM7_CMB-1515_2_GC7_1_10086.d	VSMC
