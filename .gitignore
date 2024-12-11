@@ -1,4 +1,3 @@
 *.pkl
-/Projects/Arnaud/*
-/Projects
+./Projects/Arnaud/*
 *.csv
