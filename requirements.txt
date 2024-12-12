@@ -1,0 +1,12 @@
+ace
+dask
+datashader
+easydev
+joblib
+matplotlib
+numpy
+pandas
+plotly
+scipy
+seaborn
+shap==0.46.0

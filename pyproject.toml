@@ -1,0 +1,28 @@
+
+[tool.poetry]
+name = "mlmarker"
+version = "0.1.0"
+description = ""
+authors = ["TineClaeys <tineclae.claeys@ugent.be>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+ace = "*"
+dask = "*"
+datashader = "*"
+easydev = "*"
+joblib = "*"
+matplotlib = "*"
+numpy = "*"
+pandas = "*"
+plotly = "*"
+scipy = "*"
+seaborn = "*"
+shap = "0.46.0"
+scikit-learn = "*"
+umap-learn = "*"
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
