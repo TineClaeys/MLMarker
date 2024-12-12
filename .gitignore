@@ -1,3 +1,6 @@
 *.pkl
 ./Projects/Arnaud/*
 *.csv
+Projects/SCP_slavov/2024_Khan_testis/npop5_DIANN_report.tsv
+Projects/Cell_lines/metadata.xlsx
+Projects/Cell_lines/data.xlsx
