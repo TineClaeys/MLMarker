@@ -1,0 +1,15 @@
+include README.md
+include requirements.txt
+include LICENSE
+include mlmarker
+include tests
+
+exclude features.txt
+exclude setup.py
+exclude test_notebook.ipynb
+exclude Tissue_predictors2_fulldata.ipynb
+exclude MLMarker_Arnaud_quant.py
+
+prune data
+prune old_modules
+prune Projects

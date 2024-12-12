@@ -2,8 +2,6 @@ import shap
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from typing import Optional
-
 
 class Explainability:
     def __init__(self, model, features, sample, explainer=None):
