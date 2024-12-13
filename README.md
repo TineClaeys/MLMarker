@@ -55,7 +55,7 @@ To explain the model's predictions using SHAP values:
 
 ```python
 # Visualize the SHAP force plot for the top predicted tissue
-marker.visualize_shap_force_plot(tissue_name='Heart')
+marker.explainability.visualize_shap_force_plot(tissue_name='Heart')
 ```
 
 ### 3. **Visualizing Radar Chart**
@@ -63,7 +63,7 @@ marker.visualize_shap_force_plot(tissue_name='Heart')
 To visualize the contributions of proteins across top predicted tissues:
 
 ```python
-marker.visualize_radar_chart()
+marker.explainability.visualize_radar_chart()
 ```
 
 ## Modules
@@ -105,14 +105,6 @@ We welcome contributions to the **MLMarker** project! If you have improvements, 
 3. Create a new branch for your changes.
 4. Make your changes and commit them.
 5. Push the changes to your fork and submit a pull request.
-
-### Code of Conduct
-
-Please note that this project follows a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to abide by its terms.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
