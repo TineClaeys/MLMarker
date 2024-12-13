@@ -19,7 +19,22 @@ class MLMarker:
         self.explainability = Explainability(self.model, self.features, self.sample, explainer=explainer)
 
     def get_model_features(self):
+        """
+        Returns the features expected by the model.
+
+        Returns:
+        - list: Features used for predictions.
+        """
         return self.features
+
+    def get_model_classes(self):
+        """
+        Returns the classes predicted by the model.
+
+        Returns:
+        - list: Classes the model can predict.
+        """
+        return self.model.classes_
 
     def predict_top_tissues(self, n_preds=5):
         probabilities = self.model.predict_proba(self.sample).flatten()

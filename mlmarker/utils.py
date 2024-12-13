@@ -34,6 +34,3 @@ def load_model_and_features(model_path: str, features_path: str):
     with open(features_path, "r") as f:
         features = f.read().strip().split(",\n")
     return model, features
-
-def get_model_features(self):
-    return self.features

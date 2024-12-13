@@ -132,7 +132,7 @@ class Explainability:
     def visualize_radar_chart(self, sample=None):
         if sample is None:
             sample = self.sample
-        shap_df = self.adjusted_shap_values_df(n_preds=100, penalty_factor=0.5)
+        shap_df = self.adjusted_absent_shap_values_df(n_preds=100, penalty_factor=0.5)
         predictions = shap_df.sum(axis=1).sort_values(ascending=False)
         prediction_df = pd.DataFrame(predictions)
         prediction_df.reset_index(inplace=True)
