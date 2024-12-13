@@ -118,13 +118,16 @@ class Explainability:
                 raise ValueError(f"Tissue '{tissue_name}' is not a valid class in the model.")
             
             tissue_loc = list(self.model.classes_).index(tissue_name)
+            logger.info(f"Visualizing force plot for tissue: {tissue_name}")
             print(f"Visualizing force plot for tissue: {tissue_name}")
             display(shap.force_plot(self.explainer.expected_value[1], shap_values[tissue_loc], sample, matplotlib=True))
         else:
             # If tissue_name is not provided, display for the top predicted tissues
+            logger.info("Visualizing force plots for top predicted tissues:")
             print("Visualizing force plots for top predicted tissues:")
             for tissue, _ in predictions:
                 tissue_loc = list(self.model.classes_).index(tissue)
+                logger.info(f"Tissue: {tissue}")
                 print(f"Tissue: {tissue}")
                 display(shap.force_plot(self.explainer.expected_value[1], shap_values[tissue_loc], sample, matplotlib=True))
 
