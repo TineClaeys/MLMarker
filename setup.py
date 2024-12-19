@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='MLMarker_app',
+    name='mlmarker',
     version='0.1',
     description="MLMarker is a Python package for tissue-specific protein marker prediction",
     long_description=open("README.md").read(),
