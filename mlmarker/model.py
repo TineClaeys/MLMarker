@@ -3,6 +3,8 @@ from mlmarker.constants import (
     BINARY_FEATURES_PATH,
     MULTI_CLASS_MODEL_PATH,
     MULTI_CLASS_FEATURES_PATH,
+    UPDATED_MULTI_CLASS_MODEL_PATH,
+    UPDATED_MULTI_CLASS_FEATURES_PATH,
 )
 from mlmarker.utils import validate_sample, load_model_and_features
 from mlmarker.explainability import Explainability
