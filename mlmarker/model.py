@@ -9,9 +9,12 @@ from mlmarker.explainability import Explainability
 
 
 class MLMarker:
-    def __init__(self, sample_df, binary=True, explainer=None):
+    def __init__(self, sample_df, binary=True, dev=False, explainer=None):
         self.model_path = BINARY_MODEL_PATH if binary else MULTI_CLASS_MODEL_PATH
         self.features_path = BINARY_FEATURES_PATH if binary else MULTI_CLASS_FEATURES_PATH
+        if dev:
+            self.model_path = UPDATED_MULTI_CLASS_MODEL_PATH
+            self.features_path = UPDATED_MULTI_CLASS_FEATURES_PATH
         self.model, self.features = load_model_and_features(
             self.model_path, self.features_path
         )

@@ -30,7 +30,6 @@ class Explainability:
         if sample is None:
             sample = self.sample
         shap_values = self.explainer.shap_values(self.sample, check_additivity=False)
-        #transpose so that the shape is always (1,35,4384)
         original_order = np.array(shap_values).shape
         
         classes = self.model.classes_
