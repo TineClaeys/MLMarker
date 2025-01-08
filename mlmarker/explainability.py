@@ -107,15 +107,16 @@ class Explainability:
 
     def visualize_shap_force_plot(self, sample=None, n_preds=5, tissue_name=None):
         shap_values = self.calculate_shap(sample)
-        predictions = self.predict_top_tissues(sample, n_preds)
+
         shap.initjs()
         if sample is None:
             sample = self.sample
+        predictions = self.predict_top_tissues(n_preds)
+        
         if tissue_name:
             # Check if tissue_name is in the model's classes
             if tissue_name not in self.model.classes_:
                 raise ValueError(f"Tissue '{tissue_name}' is not a valid class in the model.")
-            
             tissue_loc = list(self.model.classes_).index(tissue_name)
             logger.info(f"Visualizing force plot for tissue: {tissue_name}")
             print(f"Visualizing force plot for tissue: {tissue_name}")
