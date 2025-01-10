@@ -53,13 +53,13 @@ class MLMarker:
         shap_values = self.explainability.calculate_shap(self.sample)
         return shap_values
 
-    def visualize_force_plot(self, n_preds=5):
+    def visualize_shap_force_plot(self, n_preds=5):
         shap_values = self.calculate_shap()
         predictions = self.predict_top_tissues(n_preds)
 
         for tissue, _ in predictions:
             tissue_idx = list(self.model.classes_).index(tissue)
-            self.explainability.visualize_force_plot(shap_values, self.sample, tissue_idx)
+            self.explainability.visualize_shap_force_plot(shap_values, self.sample, tissue_idx)
 
     def visualize_radar_chart(self, n_preds=100, penalty_factor=0.5):
         shap_values = self.calculate_shap()
