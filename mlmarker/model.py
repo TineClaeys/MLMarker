@@ -11,7 +11,7 @@ from mlmarker.explainability import Explainability
 
 
 class MLMarker:
-    def __init__(self, sample_df, binary=True, dev=False, explainer=None):
+    def __init__(self, sample_df, binary=True, dev=False, explainer=None, penalty_factor=0):
         self.model_path = BINARY_MODEL_PATH if binary else MULTI_CLASS_MODEL_PATH
         self.features_path = BINARY_FEATURES_PATH if binary else MULTI_CLASS_FEATURES_PATH
         if dev:
@@ -21,7 +21,9 @@ class MLMarker:
             self.model_path, self.features_path
         )
         self.sample = validate_sample(sample_df, self.features)
-        self.explainability = Explainability(self.model, self.features, self.sample, explainer=explainer)
+        self.penalty_factor = penalty_factor
+        self.explainability = Explainability(self.model, self.features, self.sample, self.penalty_factor, explainer=explainer)
+
 
     def get_model_features(self):
         """
@@ -53,18 +55,27 @@ class MLMarker:
         shap_values = self.explainability.calculate_shap(self.sample)
         return shap_values
 
-    def visualize_shap_force_plot(self, n_preds=5):
+    def shap_force_plot(self, n_preds=5, tissue_name=None):
         shap_values = self.calculate_shap()
         predictions = self.predict_top_tissues(n_preds)
-
+        tissue_name = tissue_name
         for tissue, _ in predictions:
             tissue_idx = list(self.model.classes_).index(tissue)
-            self.explainability.visualize_shap_force_plot(shap_values, self.sample, tissue_idx)
+        self.explainability.visualize_shap_force_plot(shap_values, self.sample, tissue_idx, n_preds, tissue_name)
 
-    def visualize_radar_chart(self, n_preds=100, penalty_factor=0.5):
+    def radar_chart(self, n_preds=100):
+        penalty_factor = self.penalty_factor
         shap_values = self.calculate_shap()
         shap_df = self.explainability.shap_values_df(shap_values, self.sample, n_preds)
         adjusted_shap = self.explainability.adjust_absent_shap_values(
             shap_df, self.sample, self.explainability.zero_sample(), penalty_factor
         )
         self.explainability.visualize_radar_chart(adjusted_shap)
+
+    def shap_waterfall_plot(self, n_preds=5, tissue_name=None):
+            shap_values = self.calculate_shap()
+            predictions = self.predict_top_tissues(n_preds)
+            tissue_name = tissue_name
+            for tissue, _ in predictions:
+                tissue_idx = list(self.model.classes_).index(tissue)
+            self.explainability.visualize_shap_waterfall(shap_values, self.sample, tissue_idx, n_preds, tissue_name)
