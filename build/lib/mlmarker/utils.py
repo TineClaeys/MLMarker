@@ -5,7 +5,7 @@ import logging
 # Set up logging in the MLMarker class
 logger = logging.getLogger(__name__)
 
-def validate_sample(sample_df: pd.DataFrame, model_features: list) -> pd.DataFrame:
+def validate_sample(model_features: list, sample_df: pd.DataFrame, output_added_features = False) -> pd.DataFrame:
     """
     Validate and transform the input sample for compatibility with the model.
     Logs added, removed, and remaining features.
@@ -28,8 +28,10 @@ def validate_sample(sample_df: pd.DataFrame, model_features: list) -> pd.DataFra
     # Drop duplicate columns
     validated_sample = validated_sample.loc[:, ~validated_sample.columns.duplicated()]
     logger.info(f"Validated sample with {len(validated_sample.columns)} features.")
-    
-    return validated_sample
+    if output_added_features:
+        return validated_sample, added_features
+    else:
+        return validated_sample
 
 def load_model_and_features(model_path: str, features_path: str):
     """

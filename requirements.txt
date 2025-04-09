@@ -195,7 +195,7 @@ scipy @ file:///croot/scipy_1710947333060/work/dist/scipy-1.12.0-cp39-cp39-linux
 seaborn==0.13.2
 SecretStorage==3.3.3
 Send2Trash @ file:///croot/send2trash_1699371139552/work
-shap==0.46.0
+shap==0.41.0
 sip @ file:///croot/sip_1698675935381/work
 six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
 sklearn==0.0

@@ -4,12 +4,15 @@ import numpy as np
 import plotly.express as px
 
 class Explainability:
-    def __init__(self, model, features, sample, penalty_factor, explainer=None):
+    def __init__(self, model, features, sample=None, penalty_factor=0, explainer=None):
         self.model = model
         self.features = features
         self.sample = sample  # Store sample
         # Initialize the explainer (default is TreeExplainer if not passed)
         self.explainer = explainer or shap.TreeExplainer(model)  
+
+        if sample is not None:
+            self.update_sample(sample)  # Ensure SHAP values are computed only when sample exists
         self.zero_shaps = self.zero_sample()
         self.penalty_factor = penalty_factor
     
@@ -19,10 +22,10 @@ class Explainability:
         return zero_shaps
 
 
-    def predict_top_tissues(self, n_preds=5):
+    def predict_top_tissues(self, sample=None, n_preds=5):
         if not isinstance(n_preds, int):
             raise ValueError(f"n_preds should be an integer, got {type(n_preds)}.")
-        probabilities = self.model.predict_proba(self.sample).flatten()
+        probabilities = self.model.predict_proba(sample).flatten()
         classes = self.model.classes_
         result = sorted(zip(classes, probabilities), key=lambda x: x[1], reverse=True)[:n_preds]
         formatted_result = [(pred_tissue, round(float(prob), 4)) for pred_tissue, prob in result]
@@ -32,7 +35,7 @@ class Explainability:
         """Calculate SHAP values for a given sample, or use the class sample by default."""
         if sample is None:
             sample = self.sample
-        shap_values = self.explainer.shap_values(self.sample, check_additivity=False)
+        shap_values = self.explainer.shap_values(sample, check_additivity=False)
         original_order = np.array(shap_values).shape
         
         classes = self.model.classes_
@@ -50,7 +53,7 @@ class Explainability:
             sample = self.sample
         shap_values = self.calculate_shap(sample)
         classes = self.model.classes_
-        predictions = self.predict_top_tissues(n_preds)
+        predictions = self.predict_top_tissues(sample, n_preds)
         
         shap_df = pd.DataFrame(shap_values)
         shap_df.columns = self.features
@@ -76,19 +79,21 @@ class Explainability:
         shap_df = self.shap_values_df(n_preds=n_preds)
         
         # Identify proteins that are absent (value == 0) in the sample
+
+        #get column names where value is zero
+        column_names = self.sample.columns[self.sample.iloc[0] == 0]
+
         absent_proteins = self.sample.columns[self.sample.iloc[0] == 0]
         present_proteins = [col for col in shap_df.columns if col not in absent_proteins]
-        
         # Separate SHAP values for present and absent features
         present_shap = shap_df[present_proteins]  # SHAP values for present features remain unchanged
         absent_shap = shap_df[absent_proteins]
-        
         # Handle absent features:
         # - Identify absent features that contribute (non-zero SHAP values)
         # - Penalize them using the penalty factor and pre-stored zero SHAP values
         contributing_absent_proteins = absent_shap.columns[absent_shap.sum() != 0]
         non_contributing_absent_proteins = absent_shap.columns[absent_shap.sum() == 0]
-        
+
         # Penalize contributing absent features
         if len(contributing_absent_proteins) > 0:
             zero_absent_shap = self.zero_shaps[contributing_absent_proteins]  # Reference zero SHAP values
@@ -117,7 +122,7 @@ class Explainability:
         """
         shap_values = shap_values.astype(float)  # Convert shap_values to float type
         shap_values = np.round(shap_values, 5)  # Round shap_values to 5 decimal places
-        predictions = self.predict_top_tissues(n_preds=n_preds)
+        predictions = self.predict_top_tissues(sample, n_preds=n_preds)
         i = 0
         shap.initjs()
         # If tissue_name is provided, check if it's valid
@@ -239,6 +244,14 @@ def get_protein_info(protein_id):
     except:
         print(f"Error retrieving information for protein {protein_id}")
         return None
+import requests
+
+from io import StringIO
+def get_hpa_info(protein_id):
+    url = f"https://www.proteinatlas.org/api/search_download.php?search={protein_id}&format=tsv&columns=up,rnatsm,rnabcs,rnabcd,rnabcss,rnabcsm,rnabls,rnabld,rnablss,rnablsmecblood,ectissue,blconcms&compress=no"
+    response = requests.get(url)
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    return df
 
 def get_go_enrichment(protein_list):
     from gprofiler import GProfiler

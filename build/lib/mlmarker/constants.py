@@ -7,10 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent / "models"
 BINARY_MODEL_PATH = BASE_DIR / "binary_TP_4000features_95to75missingness_2024.joblib"
 BINARY_FEATURES_PATH = BASE_DIR / "binary_features_TP_4000features_95to75missingness_2024.txt"
 
-# NSAF quant model paths
-MULTI_CLASS_MODEL_PATH = BASE_DIR / "TP_full_92%_10exp_2024.joblib"
-MULTI_CLASS_FEATURES_PATH = BASE_DIR / "features_TP_full_92%_10exp_2024.txt"
-
 # UPDATED NSAF quant model paths
-UPDATED_MULTI_CLASS_MODEL_PATH = BASE_DIR / "TP_full_quant_update_20241216.joblib"
-UPDATED_MULTI_CLASS_FEATURES_PATH = BASE_DIR / "TP_features_full_quant_update_20241216.txt"
+MULTI_CLASS_MODEL_PATH = BASE_DIR / "TP_full_quant_update_20241216.joblib"
+MULTI_CLASS_FEATURES_PATH = BASE_DIR / "TP_features_full_quant_update_20241216.txt"
+
+UPDATED_MULTI_CLASS_MODEL_PATH = BASE_DIR / "TP_full_quant_update_20250113.joblib"
+UPDATED_MULTI_CLASS_FEATURES_PATH = BASE_DIR / "TP_features_full_quant_update_20250113.txt"
