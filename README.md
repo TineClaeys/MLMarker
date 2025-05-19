@@ -9,6 +9,7 @@
 - **SHAP-Based Explainability**: Explains model predictions with SHAP values and provides visualizations like force plots and radar charts.
 - **Data Validation & Preprocessing**: Validates input data and ensures it's properly formatted for model input.
 - **Scalable**: Designed to handle large datasets with multiple features (proteins) and tissues.
+- **Adjustable Interpretability**: Penalize absent features when explaining predictions using the `penalty_factor`.
 
 ## Installation
 
@@ -18,9 +19,7 @@ To install **MLMarker**, use the following command:
 pip install mlmarker
 ```
 
-This will install the latest version of the package along with its dependencies.
-
-If you want to install additional development requirements (e.g., for testing or contributing), clone the repository and install the dependencies from the `requirements.txt` file:
+To install development requirements:
 
 ```bash
 git clone https://github.com/your-repository/mlmarker.git
@@ -30,84 +29,72 @@ pip install -r requirements.txt
 
 ## Usage
 
-### 1. **Loading the Model and Making Predictions**
-
-To load a pre-trained model and make predictions for a given sample:
+### 1. Import and Initialize
 
 ```python
 from mlmarker.model import MLMarker
 import pandas as pd
 
-# Sample data (replace with your actual sample data)
-sample_data = pd.DataFrame({...})  # Your sample data as a DataFrame
-
-# Initialize the MLMarker class with the sample data
-marker = MLMarker(sample_df=sample_data, binary=True)
-
-# Make predictions for the top 5 tissues
-predictions = marker.predict_top_tissues(n_preds=5)
-print(predictions)
+df = pd.read_csv("sample_input.csv")
+ml = MLMarker()
+ml.load_sample(df)
 ```
 
-### 2. **Explaining Predictions with SHAP**
+> Set `binary=True` for binary models, and use `penalty_factor=0` or `1` to control interpretability of absent features.
 
-To explain the model's predictions using SHAP values:
+### 2. Inspect Model Info
 
 ```python
-# Visualize the SHAP force plot for the top predicted tissue
-marker.explainability.visualize_shap_force_plot(tissue_name='Heart')
+ml.get_model_features()
+ml.get_model_classes()
 ```
 
-### 3. **Visualizing Radar Chart**
-
-To visualize the contributions of proteins across top predicted tissues:
+### 3. Predict Tissue Types
 
 ```python
-marker.explainability.visualize_radar_chart()
+predictions = ml.predict_top_tissues(n_preds=5)
+for tissue, prob in predictions:
+    print(f"{tissue}: {prob}")
 ```
 
-## Modules
+### 4. SHAP Explanations
 
-### `model.py`
+```python
+shap_values = ml.calculate_shap()
+```
 
-Contains the `MLMarker` class responsible for:
-- Loading models and features from specified paths.
-- Predicting tissue types for a given sample.
-- Calculating and visualizing SHAP values for model explainability.
+### 5. Visualizations
+#### Radar Chart
 
-### `explainability.py`
+```python
+ml.radar_chart()
+```
 
-Handles the computation and visualization of SHAP values:
-- Calculates SHAP values for a given sample.
-- Visualizes SHAP force plots for understanding how features contribute to predictions.
-- Adjusts SHAP values for absent features and visualizes radar charts for model insights.
+### 6. Adjusted SHAP Explanations
 
-### `constants.py`
+```python
+shap_df = ml.explainability.adjusted_absent_shap_values_df(n_preds=5)
+```
 
-Contains constants used across the package:
-- File paths for models and features.
-- Configuration values related to model training and prediction.
+This function penalizes SHAP values for proteins with zero intensity in the sample but that still contribute to classification. Use the `penalty_factor` parameter (recommended: `0` or `1`) to determine how strongly to penalize those features:
+- `0`: No penalty — treat absent features equally.
+- `1`: Full penalty — reduce importance of absent features based on reference values.
 
-### `utils.py`
+---
 
-Provides helper functions for data validation and preprocessing:
-- Ensures the input sample data matches the expected format for prediction.
-- Scales and cleans data to be compatible with the model.
+## Advanced Utilities
+
+MLMarker includes utilities for:
+- GO enrichment: `get_go_enrichment()`
+- Protein metadata from UniProt or HPA: `get_protein_info()`, `get_hpa_info()`
+- Custom SHAP visualizations
+
+---
 
 ## Contributing
-
 We welcome contributions to the **MLMarker** project! If you have improvements, bug fixes, or additional features, feel free to submit a pull request.
-
-### How to Contribute
-
-1. Fork the repository.
-2. Clone your fork locally.
-3. Create a new branch for your changes.
-4. Make your changes and commit them.
-5. Push the changes to your fork and submit a pull request.
-
-## Acknowledgments
-
-- **SHAP**: For model explainability.
-- **Scikit-learn**: For machine learning model support.
-- **Plotly**: For visualizing results via radar charts.
+    1. Fork the repository.
+    2. Clone your fork locally.
+    3. Create a new branch for your changes.
+    4. Make your changes and commit them.
+    5. Push the changes to your fork and submit a pull request.

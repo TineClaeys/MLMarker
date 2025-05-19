@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "mlmarker"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = ["TineClaeys <tineclae.claeys@ugent.be>"]
 
@@ -18,9 +18,11 @@ pandas = "*"
 plotly = "*"
 scipy = "*"
 seaborn = "*"
-shap = "0.41.0"
+shap = "0.42.0"
 scikit-learn = "*"
 umap-learn = "*"
+bioservices = "*"
+gprofiler-official = "*"
 [tool.poetry.dev-dependencies]
 
 [build-system]
