@@ -19,6 +19,8 @@ setup(
         'matplotlib',
         'shap',
         'seaborn',
-        'numpy'
+        'numpy==1.26.4',
+        'bioservices',
+        "shap==0.42.0"
     ],
 )
