@@ -1,100 +1,145 @@
-
 # MLMarker
 
-**MLMarker** is a machine learning framework designed for tissue-specific proteomics classification. It leverages state-of-the-art machine learning models to predict tissue origins based on protein expression data, with built-in explainability features for interpreting model predictions using SHAP values.
+MLMarker is a Python package for tissue-specific proteomics prediction using machine learning, with integrated SHAP-based explainability features.
 
-## Features
+## Key Features
 
-- **Model Training & Prediction**: Trains machine learning models to predict tissue types based on protein expression data.
-- **SHAP-Based Explainability**: Explains model predictions with SHAP values and provides visualizations like force plots and radar charts.
-- **Data Validation & Preprocessing**: Validates input data and ensures it's properly formatted for model input.
-- **Scalable**: Designed to handle large datasets with multiple features (proteins) and tissues.
-- **Adjustable Interpretability**: Penalize absent features when explaining predictions using the `penalty_factor`.
+- **Dual Model Support**: Binary and quantitative tissue prediction models
+- **SHAP-Based Predictions**: Uses SHAP values for more interpretable predictions
+- **Feature Penalty System**: Adjustable penalty for absent features using `penalty_factor`
+- **Visualization Tools**: Force plots, radar charts, and custom visualizations
+- **Protein Analysis**: Integrated tools for NSAF calculation and protein information retrieval
+- **Data Validation**: Automatic handling of missing features
 
 ## Installation
-
-To install **MLMarker**, use the following command:
 
 ```bash
 pip install mlmarker
 ```
 
-To install development requirements:
-
-```bash
-git clone https://github.com/your-repository/mlmarker.git
-cd mlmarker
-pip install -r requirements.txt
-```
-
-## Usage
-
-### 1. Import and Initialize
+## Quick Start
 
 ```python
-from mlmarker.model import MLMarker
 import pandas as pd
+from mlmarker import MLMarker
 
-df = pd.read_csv("sample_input.csv")
-ml = MLMarker()
-ml.load_sample(df)
+# Load your data
+df = pd.read_csv("your_sample.csv")
+
+# Initialize model (binary=False for quantitative model)
+model = MLMarker(binary=False, penalty_factor=1)
+
+# Load and validate your sample
+model.load_sample(df)
+
+# Get predictions
+predictions = model.predict_top_tissues_shap(n_preds=5)
 ```
 
-> Set `binary=True` for binary models, and use `penalty_factor=0` or `1` to control interpretability of absent features.
+## Core Features
 
-### 2. Inspect Model Info
+### 1. Model Initialization
 
 ```python
-ml.get_model_features()
-ml.get_model_classes()
+# Binary model
+binary_model = MLMarker(binary=True)
+
+# Quantitative model with penalty for absent features
+quant_model = MLMarker(binary=False, penalty_factor=1)
 ```
 
-### 3. Predict Tissue Types
+### 2. SHAP-Based Predictions
 
 ```python
-predictions = ml.predict_top_tissues(n_preds=5)
-for tissue, prob in predictions:
-    print(f"{tissue}: {prob}")
+# Get predictions with SHAP explanations
+predictions = model.predict_top_tissues_shap(n_preds=5)
+
+# Visualize SHAP force plot
+model.shap_force_plot(n_preds=3)
+
+# Generate radar chart of predictions
+model.radar_chart()
 ```
 
-### 4. SHAP Explanations
+### 3. SHAP Value Analysis
 
 ```python
-shap_values = ml.calculate_shap()
+# Get raw SHAP values
+shap_values = model.explainability.calculate_shap()
+
+# Get processed SHAP values with optional penalty
+shap_df = model.explainability.get_shap_values(n_preds=5)
 ```
 
-### 5. Visualizations
-#### Radar Chart
+### 4. Feature Handling
 
 ```python
-ml.radar_chart()
+# Get model features
+features = model.get_model_features()
+
+# Load sample with feature validation
+added_features = model.load_sample(df, output_added_features=True)
 ```
 
-### 6. Adjusted SHAP Explanations
+### 5. NSAF Calculations
 
 ```python
-shap_df = ml.explainability.adjusted_absent_shap_values_df(n_preds=5)
+# Calculate NSAF scores for proteins
+nsaf_df = model.explainability.calculate_NSAF(protein_df, lengths_df)
 ```
 
-This function penalizes SHAP values for proteins with zero intensity in the sample but that still contribute to classification. Use the `penalty_factor` parameter (recommended: `0` or `1`) to determine how strongly to penalize those features:
-- `0`: No penalty — treat absent features equally.
-- `1`: Full penalty — reduce importance of absent features based on reference values.
+## Advanced Usage
 
----
+### Penalty Factor
 
-## Advanced Utilities
+The `penalty_factor` parameter controls how absent features influence predictions:
+- `0`: No penalty (default)
+- `1`: Full penalty for absent features
+- Values between 0-1: Partial penalty
 
-MLMarker includes utilities for:
-- GO enrichment: `get_go_enrichment()`
-- Protein metadata from UniProt or HPA: `get_protein_info()`, `get_hpa_info()`
-- Custom SHAP visualizations
+```python
+# Model with full penalty for absent features
+model = MLMarker(penalty_factor=1)
+```
 
----
+### Custom SHAP Visualization
 
-## Contributing
-We welcome contributions to the **MLMarker** project! If you have improvements, bug fixes, or additional features, feel free to submit a pull request.
-    1. Fork the repository.
-    2. Clone your fork locally.
-    3. Create a new branch for your changes.
-    4. Make your changes and commit them.
-    5. Push the changes to your fork and submit a pull request.
+```python
+# Visualize specific tissue
+model.shap_force_plot(tissue_name="Liver")
+
+# Visualize top N predictions
+model.shap_force_plot(n_preds=3)
+```
+
+## Additional Utilities
+
+```python
+from mlmarker.utils import (
+    get_protein_info,
+    get_hpa_info,
+    get_go_enrichment,
+    visualise_custom_plot
+)
+
+# Get protein information
+protein_info = get_protein_info("P12345")
+
+# Get Human Protein Atlas information
+hpa_info = get_hpa_info("P12345")
+
+# Perform GO enrichment analysis
+enrichment = get_go_enrichment(protein_list)
+```
+
+## Requirements
+
+- Python ≥ 3.8
+- numpy==1.23.5
+- pandas
+- scikit-learn
+- shap==0.42.0
+- plotly
+- bioservices
+- gprofiler-official
+
